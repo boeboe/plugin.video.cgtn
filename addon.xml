@@ -2,6 +2,7 @@
 <addon id="plugin.video.cgtn" name="CGTN News" version="0.0.1" provider-name="Boeboe">
   <requires>
     <import addon="xbmc.python" version="2.26.0"/>
+    <import addon="script.module.requests" version="2.18.0" />
   </requires>
   <extension point="xbmc.python.pluginsource" library="addon.py">
     <provides>video</provides>
