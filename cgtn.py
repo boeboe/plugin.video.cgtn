@@ -46,10 +46,13 @@ def list_categories():
         list_item.setInfo('video', {'title': category,
                                     'genre': category,
                                     'mediatype': 'video'})
-        img = os.path.join(Config.mediaDir, VIDEOS[category][0]['thumb'])
-        list_item.setArt({'thumb': img,
-                          'icon': img,
-                          'fanart': img})
+        thumb = os.path.join(Config.mediaDir, "thumb_cgtn_live.png")
+        poster = os.path.join(Config.mediaDir, "poster_cgtn_live.png")
+        fanart = Config.fanart
+        list_item.setArt({'thumb': thumb,
+                          'icon': thumb,
+                          'poster': poster,
+                          'fanart': fanart})
 
         # plugin://plugin.video.cgtn/?action=listing&category=Livestream
         url = get_url(action='listing', category=category)
@@ -69,10 +72,13 @@ def list_videos(category):
         list_item.setInfo('video', {'title': video['name'],
                                     'genre': video['genre'],
                                     'mediatype': 'video'})
-        img = os.path.join(Config.mediaDir, VIDEOS[category][0]['thumb'])
-        list_item.setArt({'thumb': img, 
-                          'icon': img, 
-                          'fanart': img})
+        thumb = os.path.join(Config.mediaDir, video['thumb'])
+        poster = os.path.join(Config.mediaDir, video['poster'])
+        fanart = Config.fanart
+        list_item.setArt({'thumb': thumb,
+                          'icon': thumb,
+                          'poster': poster,
+                          'fanart': fanart})
         list_item.setProperty('IsPlayable', 'true')
 
         # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8

@@ -24,3 +24,4 @@ class Config:
     rootDir = path.replace(";", "").rstrip(os.sep)
     dataDir = os.path.join(rootDir, "resources", "data")
     mediaDir = os.path.join(rootDir, "resources", "media")
+    fanart = os.path.join(rootDir, "resources", "fanart.jpg")
