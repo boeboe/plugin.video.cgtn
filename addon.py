@@ -19,7 +19,7 @@ lifestream_list = [('https://news.cgtn.com/resource/live/english/cgtn-news.m3u8'
 
 channel_program_url = 'https://api.cgtn.com/website/api/live/channel/epg/list?'
 
-xbmcplugin.setContent(addon_handle, 'movies')
+xbmcplugin.setContent(addon_handle, 'videos')
 
 current_milli_time = lambda: int(round(time.time() * 1000))
 

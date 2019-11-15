@@ -1,5 +1,10 @@
+plugin.video.cgtn/resources/data/menu.json
+plugin.video.cgtn/resources/lib/__init__.py
+plugin.video.cgtn/resources/lib/cgtnconfig.py
+plugin.video.cgtn/resources/media/test.png
+plugin.video.cgtn/resources/__init__.py
 plugin.video.cgtn/resources/fanart.jpg
 plugin.video.cgtn/resources/icon.png
-plugin.video.cgtn/addon.py
 plugin.video.cgtn/addon.xml
+plugin.video.cgtn/cgtn.py
 plugin.video.cgtn/LICENSE.txt
