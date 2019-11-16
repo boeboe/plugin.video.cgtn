@@ -1,2 +1,2 @@
 
-__all__ = ["cgtnconfig"]
+__all__ = ["cgtnconfig", "cgtnschedule"]

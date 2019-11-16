@@ -15,6 +15,7 @@ import xbmcplugin
 import json
 
 from resources.lib.cgtnconfig import Config
+from resources.lib.cgtnschedule import ScheduleParser
 
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
@@ -67,9 +68,13 @@ def list_videos(category):
 
     videos = get_videos(category)
     for video in videos:
+        sp = ScheduleParser(video['schedule'])
+        current_play = sp.get_current_play()
+
         list_item = xbmcgui.ListItem(label=video['name'])
         list_item.setInfo('video', {'title': video['name'],
                                     'genre': video['genre'],
+                                    'plot': current_play,
                                     'mediatype': 'video'})
         thumb = os.path.join(Config.mediaDir, video['thumb'])
         poster = os.path.join(Config.mediaDir, video['poster'])
