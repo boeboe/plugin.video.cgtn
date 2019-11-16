@@ -49,8 +49,7 @@ def list_categories():
         thumb = os.path.join(Config.mediaDir, "thumb_cgtn_live.png")
         poster = os.path.join(Config.mediaDir, "poster_cgtn_live.png")
         fanart = Config.fanart
-        list_item.setArt({'thumb': thumb,
-                          'icon': thumb,
+        list_item.setArt({'icon': thumb,
                           'poster': poster,
                           'fanart': fanart})
 
@@ -75,8 +74,7 @@ def list_videos(category):
         thumb = os.path.join(Config.mediaDir, video['thumb'])
         poster = os.path.join(Config.mediaDir, video['poster'])
         fanart = Config.fanart
-        list_item.setArt({'thumb': thumb,
-                          'icon': thumb,
+        list_item.setArt({'icon': thumb,
                           'poster': poster,
                           'fanart': fanart})
         list_item.setProperty('IsPlayable', 'true')
