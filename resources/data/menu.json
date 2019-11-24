@@ -48,5 +48,6 @@
       "schedule": "https://api.cgtn.com/website/api/live/channel/epg/list?channelId=6",
       "genre": "Documentary"
     }
-  ]
+  ],
+  "Videos": []
 }

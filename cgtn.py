@@ -14,15 +14,15 @@ import xbmcgui
 import xbmcplugin
 import json
 
-from resources.lib.cgtnconfig import Config
-from resources.lib.cgtnschedule import ScheduleParser
+from resources.lib.cgtnconfig import CGTNConfig
+from resources.lib.cgtnschedule import CGTNScheduleParser
 
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
 # Get the plugin handle as an integer number.
 _handle = int(sys.argv[1])
 
-with open(os.path.join(Config.dataDir, "menu.json")) as json_menu:
+with open(os.path.join(CGTNConfig.dataDir, "menu.json")) as json_menu:
     VIDEOS = json.load(json_menu)
 
 def get_url(**kwargs):
@@ -47,9 +47,9 @@ def list_categories():
         list_item.setInfo('video', {'title': category,
                                     'genre': category,
                                     'mediatype': 'video'})
-        thumb = os.path.join(Config.mediaDir, "thumb_cgtn_live.png")
-        poster = os.path.join(Config.mediaDir, "poster_cgtn_live.png")
-        fanart = Config.fanart
+        thumb = os.path.join(CGTNConfig.mediaDir, "thumb_cgtn_live.png")
+        poster = os.path.join(CGTNConfig.mediaDir, "poster_cgtn_live.png")
+        fanart = CGTNConfig.fanart
         list_item.setArt({'icon': thumb,
                           'poster': poster,
                           'fanart': fanart})
@@ -68,17 +68,17 @@ def list_videos(category):
 
     videos = get_videos(category)
     for video in videos:
-        sp = ScheduleParser(video['schedule'])
+        sp = CGTNScheduleParser(video['schedule'])
         current_play = sp.get_current_play()
 
         list_item = xbmcgui.ListItem(label=video['name'])
         list_item.setInfo('video', {'title': video['name'],
                                     'genre': video['genre'],
                                     'plot': current_play,
-                                    'mediatype': 'video'})
-        thumb = os.path.join(Config.mediaDir, video['thumb'])
-        poster = os.path.join(Config.mediaDir, video['poster'])
-        fanart = Config.fanart
+                                    'mediatype': 'movie'})
+        thumb = os.path.join(CGTNConfig.mediaDir, video['thumb'])
+        poster = os.path.join(CGTNConfig.mediaDir, video['poster'])
+        fanart = CGTNConfig.fanart
         list_item.setArt({'icon': thumb,
                           'poster': poster,
                           'fanart': fanart})

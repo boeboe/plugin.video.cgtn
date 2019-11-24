@@ -2,15 +2,13 @@ import os
 import requests
 import time
 
-class ScheduleParser:
-    """Class to parse the TV schedule"""
+class CGTNScheduleParser:
+    """Class to parse the CGTN livestream schedule"""
 
     def __init__(self, url):
         self.url = url
+        self.schedule = None
         pass
-
-    def get_now_time(self):
-        return int(round(time.time() * 1000))
  
     def get_day_start_epoch(self):
         start_str = time.strftime( "%m/%d/%Y" ) + " 00:00:00"
@@ -19,9 +17,6 @@ class ScheduleParser:
     def get_day_end_epoch(self):
         end_str = time.strftime( "%m/%d/%Y ") + " 23:59:59"
         return int( time.mktime( time.strptime( end_str, "%m/%d/%Y %H:%M:%S" ) ) ) * 1000
-    
-    def get_hour_minutes(self, timestring):
-        return time.strftime('%H:%M', time.localtime(float(timestring)/1000))
 
     def get_schedule_json(self, start, end):
         try:
@@ -43,33 +38,12 @@ class ScheduleParser:
         return r.json()
 
     def parse_schedule(self, json):
-        output = ""
+        schedule = []
         for item in reversed(json['data']):
-            begin = item['startTime']
-            begin_hm = self.get_hour_minutes(item['startTime'])
-            end = item['endTime']
-            end_hm = self.get_hour_minutes(item['endTime'])
-            name = item['name'].lower().capitalize()
-
-            if int(begin) < self.get_now_time() < int(end):
-                output = output + '[B]' + begin_hm + ' - ' + end_hm + ' : ' + name + ' [running][/B]\n'
-            elif int(end) < self.get_now_time():
-                # Do not include finished programs
-                continue
-            elif int(begin) > self.get_now_time():
-                output = output + begin_hm + ' - ' + end_hm + ' : ' + name + '\n'
-            
-        return output
-
-    def parse_current_play(self, json):
-        output = ""
-        for item in reversed(json['data']):
-            begin = item['startTime']
-            end = item['endTime']
-            name = item['name'].lower().capitalize()
-
-            if int(begin) < self.get_now_time() < int(end):
-                return name     
+            schedule_item = CGTNLiveScheduleItem(item['name'].lower().capitalize(),
+                                                 item['startTime'], item['endTime'])
+            schedule.append(schedule_item)            
+        return schedule
 
     def get_schedule(self):        
         begin_day = self.get_day_start_epoch()
@@ -78,17 +52,70 @@ class ScheduleParser:
         schedule_json = self.get_schedule_json(begin_day, end_day)
 
         if schedule_json:
-            return self.parse_schedule(schedule_json)
+            self.schedule = self.parse_schedule(schedule_json)
         else:
-            return ""
+            print("Failed to parse schedule")
+            self.schedule = []
+        
+        return self.schedule
 
-    def get_current_play(self):
-        begin_day = self.get_day_start_epoch()
-        end_day = self.get_day_end_epoch()
+    def get_play_item(self):
+        for item in self.schedule:
+            if item.get_status() == CGTNLiveScheduleState.RUNNING:
+                return item
+        
+        print("Failed to get current playing item")
+        return None
 
-        schedule_json = self.get_schedule_json(begin_day, end_day)
+    def get_future_items(self):
+        future_items = []
+        for item in self.schedule:
+            if item.get_status == CGTNLiveScheduleState.SCHEDULED:
+                future_items.append(item)
+        
+        return future_items
 
-        if schedule_json:
-            return self.parse_current_play(schedule_json)
-        else:
-            return ""
+
+class CGTNLiveScheduleItem:
+    """Class to store a single live scheduled item"""
+
+    def __init__(self, program, start, end):
+        self.program = program
+        self.start = start
+        self.end = end
+        self.status = self.get_status()
+        pass
+
+    def get_hour_minutes(self, timestring):
+        return time.strftime('%H:%M', time.localtime(float(timestring)/1000))
+
+    def get_now_time(self):
+        return int(round(time.time() * 1000))    
+
+    def get_start_hm(self):
+        return self.get_hour_minutes(self.start)
+
+    def get_end_hm(self):
+        return self.get_hour_minutes(self.end)
+    
+    def get_status(self):
+        if int(self.start) < self.get_now_time() < int(self.end):
+            return CGTNLiveScheduleState.RUNNING
+        elif int(self.end) < self.get_now_time():
+            return CGTNLiveScheduleState.FINISHED
+        elif int(self.start) > self.get_now_time():
+            return CGTNLiveScheduleState.SCHEDULED   
+
+    def __str__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
+    def __repr__(self):
+        return str(self.__class__) + ": " + str(self.__dict__)
+
+
+class CGTNLiveScheduleState():
+    """Class to represent the status of live scheduled item"""
+
+    FINISHED = "FINISHED"
+    RUNNING = "RUNNING"
+    SCHEDULED = "SCHEDULED"

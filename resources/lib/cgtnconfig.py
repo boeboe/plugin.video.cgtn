@@ -2,7 +2,7 @@
 import os
 import xbmc
 
-class Config:
+class CGTNConfig:
     """Class with all the configuration constants"""
 
     def __init__(self):
