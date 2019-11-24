@@ -15,7 +15,8 @@ import xbmcplugin
 import json
 
 from resources.lib.cgtnconfig import CGTNConfig
-from resources.lib.cgtnschedule import CGTNScheduleParser
+from resources.lib.cgtnschedule import CGTNScheduleParser, CGTNLiveScheduleItem
+from resources.lib.cgtnvideo import CGTNVideoParser
 
 # Get the plugin url in plugin:// notation.
 _url = sys.argv[0]
@@ -47,8 +48,17 @@ def list_categories():
         list_item.setInfo('video', {'title': category,
                                     'genre': category,
                                     'mediatype': 'video'})
-        thumb = os.path.join(CGTNConfig.mediaDir, "thumb_cgtn_live.png")
-        poster = os.path.join(CGTNConfig.mediaDir, "poster_cgtn_live.png")
+        
+        if category == "Livestream":
+            thumb = os.path.join(CGTNConfig.mediaDir, "thumb_cgtn_live.png")
+            poster = os.path.join(CGTNConfig.mediaDir, "poster_cgtn_live.png")
+        elif category == "Videos":
+            thumb = os.path.join(CGTNConfig.mediaDir, "thumb_cgtn_en.png")
+            poster = os.path.join(CGTNConfig.mediaDir, "poster_cgtn_en.png")
+        else:
+            raise ValueError('Invalid category: {0}!'.format(category))
+
+        
         fanart = CGTNConfig.fanart
         list_item.setArt({'icon': thumb,
                           'poster': poster,
@@ -66,31 +76,58 @@ def list_videos(category):
     xbmcplugin.setPluginCategory(_handle, category)
     xbmcplugin.setContent(_handle, 'videos')
 
-    videos = get_videos(category)
-    for video in videos:
-        sp = CGTNScheduleParser(video['schedule'])
-        current_play = sp.get_current_play()
+    if category == "Livestream":
+        videos = get_videos(category)
+        for video in videos:
+            sp = CGTNScheduleParser(video['schedule'])
+            sp.get_schedule()
+            play_item = sp.get_play_item()
+            current_play = play_item.program
 
-        list_item = xbmcgui.ListItem(label=video['name'])
-        list_item.setInfo('video', {'title': video['name'],
-                                    'genre': video['genre'],
-                                    'plot': current_play,
-                                    'mediatype': 'movie'})
-        thumb = os.path.join(CGTNConfig.mediaDir, video['thumb'])
-        poster = os.path.join(CGTNConfig.mediaDir, video['poster'])
-        fanart = CGTNConfig.fanart
-        list_item.setArt({'icon': thumb,
-                          'poster': poster,
-                          'fanart': fanart})
-        list_item.setProperty('IsPlayable', 'true')
+            list_item = xbmcgui.ListItem(label=video['name'])
+            list_item.setInfo('video', {'title': video['name'],
+                                        'genre': video['genre'],
+                                        'plot': current_play,
+                                        'mediatype': 'movie'})
+            thumb = os.path.join(CGTNConfig.mediaDir, video['thumb'])
+            poster = os.path.join(CGTNConfig.mediaDir, video['poster'])
+            fanart = CGTNConfig.fanart
+            list_item.setArt({'icon': thumb,
+                            'poster': poster,
+                            'fanart': fanart})
+            list_item.setProperty('IsPlayable', 'true')
 
-        # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
-        url = get_url(action='play', video=video['video'])
-        xbmcplugin.addDirectoryItem(handle=_handle, url=url, listitem=list_item, isFolder=False)
+            # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
+            url = get_url(action='play', video=video['video'])
+            xbmcplugin.addDirectoryItem(handle=_handle, url=url, listitem=list_item, isFolder=False)
 
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
-    xbmcplugin.endOfDirectory(_handle)
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
+        xbmcplugin.endOfDirectory(_handle)
+    elif category == "Videos":
+        vp = CGTNVideoParser("https://api.cgtn.com/website/api/program/getList")
+        videos = vp.get_videos()
+        for video in videos:
+            list_item = xbmcgui.ListItem(label=video.headline)
+            list_item.setInfo('video', {'title': video.headline,
+                                        'genre': "News Video",
+                                        'plot': video.headline,
+                                        'director': video.editor,
+                                        'aired': video.publish_time,
+                                        'mediatype': 'movie'})
+            fanart = CGTNConfig.fanart
+            list_item.setArt({'icon': video.poster_url,
+                            'poster': video.poster_url,
+                            'fanart': fanart})
+            list_item.setProperty('IsPlayable', 'true')
 
+            # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
+            url = get_url(action='play', video=video.video_url)
+            xbmcplugin.addDirectoryItem(handle=_handle, url=url, listitem=list_item, isFolder=False)
+
+        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
+        xbmcplugin.endOfDirectory(_handle)           
+    else:
+        raise ValueError('Invalid category: {0}!'.format(category))
 
 def play_video(path):
     play_item = xbmcgui.ListItem(path=path)

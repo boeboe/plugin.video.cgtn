@@ -2,6 +2,7 @@ plugin.video.cgtn/resources/data/menu.json
 plugin.video.cgtn/resources/lib/__init__.py
 plugin.video.cgtn/resources/lib/cgtnconfig.py
 plugin.video.cgtn/resources/lib/cgtnschedule.py
+plugin.video.cgtn/resources/lib/cgtnvideo.py
 plugin.video.cgtn/resources/media/poster_cgtn_ar.png
 plugin.video.cgtn/resources/media/poster_cgtn_docu.png
 plugin.video.cgtn/resources/media/poster_cgtn_en.png
