@@ -1,161 +1,80 @@
+"""Main entry for this Kodi plugin """
 # -*- coding: utf-8 -*-
 # Module: default
 # Author: Boeboe
 # Created on: 14.11.2019
 # License: CC BY-NC-SA 4.0 https://creativecommons.org/licenses/by-nc-sa/4.0
 
-import sys
 import os
+import sys
 from urllib import urlencode
 from urlparse import parse_qsl
-import xbmc
-import xbmcaddon
+
 import xbmcgui
 import xbmcplugin
-import json
 
-from resources.lib.cgtnconfig import CGTNConfig
-from resources.lib.cgtnschedule import CGTNScheduleParser, CGTNLiveScheduleItem
-from resources.lib.cgtnvideo import CGTNVideoParser
+from resources.lib.channel import Channel, ChannelParser
 
-# Get the plugin url in plugin:// notation.
-_url = sys.argv[0]
-# Get the plugin handle as an integer number.
-_handle = int(sys.argv[1])
+from config import Config, Categories
 
-with open(os.path.join(CGTNConfig.dataDir, "menu.json")) as json_menu:
-    VIDEOS = json.load(json_menu)
+PLUGIN_URL = sys.argv[0]
+PLUGIN_HANDLE = int(sys.argv[1])
 
 def get_url(**kwargs):
-    return '{0}?{1}'.format(_url, urlencode(kwargs))
-
-
-def get_categories():
-    return VIDEOS.iterkeys()
-
-
-def get_videos(category):
-    return VIDEOS[category]
-
+    """Get a valid Kodi URL with encoded parameters """
+    return '{0}?{1}'.format(PLUGIN_URL, urlencode(kwargs))
 
 def list_categories():
-    xbmcplugin.setPluginCategory(_handle, 'CGTN News')
-    xbmcplugin.setContent(_handle, 'videos')
-
-    categories = get_categories()
-    for category in categories:
-        list_item = xbmcgui.ListItem(label=category, iconImage='DefaultFolder.png')
-        list_item.setInfo('video', {'title': category,
-                                    'genre': category,
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'CGTN Addon')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
+    for cat in Categories.get_categories():
+        list_item = xbmcgui.ListItem(label=Categories.get_name(cat), iconImage='DefaultFolder.png')
+        list_item.setInfo('video', {'title': Categories.get_name(cat),
+                                    'genre': Categories.get_name(cat),
                                     'mediatype': 'video'})
-        
-        if category == "Livestream":
-            thumb = os.path.join(CGTNConfig.mediaDir, "thumb_cgtn_live.png")
-            poster = os.path.join(CGTNConfig.mediaDir, "poster_cgtn_live.png")
-        elif category == "Videos":
-            thumb = os.path.join(CGTNConfig.mediaDir, "thumb_cgtn_en.png")
-            poster = os.path.join(CGTNConfig.mediaDir, "poster_cgtn_en.png")
-        else:
-            raise ValueError('Invalid category: {0}!'.format(category))
 
-        
-        fanart = CGTNConfig.fanart
-        list_item.setArt({'icon': thumb,
-                          'poster': poster,
-                          'fanart': fanart})
+        poster = os.path.join(Config.mediaDir, Categories.get_poster(cat))
+        list_item.setArt({'poster': poster, 'fanart': Config.fanart})
 
-        # plugin://plugin.video.cgtn/?action=listing&category=Livestream
-        url = get_url(action='listing', category=category)
-        xbmcplugin.addDirectoryItem(handle=_handle, url=url, listitem=list_item, isFolder=True)
+        # plugin://plugin.video.cgtn/?action=listing&category=livestream|channels|news
+        url = get_url(action='listing', category=cat)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=True)
 
-    xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
-    xbmcplugin.endOfDirectory(_handle)
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
+def list_livestreams():
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'CGTN Livestream')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
 
-def list_videos(category):
-    xbmcplugin.setPluginCategory(_handle, category)
-    xbmcplugin.setContent(_handle, 'videos')
+    parser = ChannelParser()
+    for channel in Channel.get_all():
+        video = parser.parse_current_live(channel)
+        list_item = xbmcgui.ListItem(label=channel["name"])
+        list_item.setInfo('video', {'title': channel["name"],
+                                    'genre': "Livestream",
+                                    'plot': video.title,
+                                    'mediatype': 'movie'})
+        poster = os.path.join(Config.mediaDir, video['poster'])
+        list_item.setArt({'poster': poster, 'fanart': Config.fanart})
+        list_item.setProperty('IsPlayable', 'true')
 
-    if category == "Livestream":
-        videos = get_videos(category)
-        for video in videos:
-            sp = CGTNScheduleParser(video['schedule'])
-            sp.get_schedule()
-            play_item = sp.get_play_item()
-            current_play = play_item.program
+        # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
+        url = get_url(action='play', video=video.video_url)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=False)
 
-            list_item = xbmcgui.ListItem(label=video['name'])
-            list_item.setInfo('video', {'title': video['name'],
-                                        'genre': video['genre'],
-                                        'plot': current_play,
-                                        'mediatype': 'movie'})
-            thumb = os.path.join(CGTNConfig.mediaDir, video['thumb'])
-            poster = os.path.join(CGTNConfig.mediaDir, video['poster'])
-            fanart = CGTNConfig.fanart
-            list_item.setArt({'icon': thumb,
-                            'poster': poster,
-                            'fanart': fanart})
-            list_item.setProperty('IsPlayable', 'true')
-
-            # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
-            url = get_url(action='play', video=video['video'])
-            xbmcplugin.addDirectoryItem(handle=_handle, url=url, listitem=list_item, isFolder=False)
-
-        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
-        xbmcplugin.endOfDirectory(_handle)
-    elif category == "Videos":
-        vp = CGTNVideoParser("https://api.cgtn.com/website/api/program/getList")
-        videos = vp.get_videos()
-        for video in videos:
-            list_item = xbmcgui.ListItem(label=video.headline)
-            list_item.setInfo('video', {'title': video.headline,
-                                        'genre': "News Video",
-                                        'plot': video.headline,
-                                        'director': video.editor,
-                                        'aired': video.publish_time,
-                                        'mediatype': 'movie'})
-            fanart = CGTNConfig.fanart
-            list_item.setArt({'icon': video.poster_url,
-                            'poster': video.poster_url,
-                            'fanart': fanart})
-            list_item.setProperty('IsPlayable', 'true')
-
-            # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
-            url = get_url(action='play', video=video.video_url)
-            xbmcplugin.addDirectoryItem(handle=_handle, url=url, listitem=list_item, isFolder=False)
-
-        xbmcplugin.addSortMethod(_handle, xbmcplugin.SORT_METHOD_NONE)
-        xbmcplugin.endOfDirectory(_handle)           
-    else:
-        raise ValueError('Invalid category: {0}!'.format(category))
-
-def play_video(path):
-    play_item = xbmcgui.ListItem(path=path)
-    xbmcplugin.setResolvedUrl(handle=_handle, succeeded=True, listitem=play_item)
-
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_NONE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 def router(paramstring):
     params = dict(parse_qsl(paramstring))
 
-    # Valid routing cases:
-    #  - Initial call from Kodi: 
-    #       plugin://plugin.video.cgtn
-    #  - When user goes into a category: 
-    #       plugin://plugin.video.cgtn?action=listing&category=Livestream
-    #  - When user plays an item
-    #       plugin://plugin.video.cgtn?action=play&video=httpx://example.com/dummy.m3u8
     if params:
-        if params['action'] == 'listing':
-            list_videos(params['category'])     
-        elif params['action'] == 'play':
-            play_video(params['video'])
-        else:
-            raise ValueError('Invalid paramstring: {0}!'.format(paramstring))
+        if params['action'] == 'listing' and params['category'] == ['livestream']:
+            list_livestreams()
     else:
         list_categories()
 
 
 if __name__ == '__main__':
-    # Call the router function and pass the plugin call parameters to it.
-    # We use string slicing to trim the leading '?' from the plugin call paramstring
     router(sys.argv[2][1:])
