@@ -1,7 +1,7 @@
 RUNTEST2=python2 -m unittest discover -v -b
 RUNTEST3=python3 -m unittest -v -b
 ALLMODULES=$(patsubst %.py, %, $(wildcard test_*.py))
-VERSION=0.0.4
+VERSION=0.0.5
 
 .PHONY: tests_2 tests_3 clean package
 
