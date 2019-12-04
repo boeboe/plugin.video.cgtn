@@ -10,6 +10,7 @@ import sys
 from urllib import urlencode
 from urlparse import parse_qsl
 
+import xbmc
 import xbmcgui
 import xbmcplugin
 
@@ -19,6 +20,9 @@ from config import Config, Categories
 
 PLUGIN_URL = sys.argv[0]
 PLUGIN_HANDLE = int(sys.argv[1])
+
+def log(message):
+    xbmc.log("============== {}".format(message), level=xbmc.LOGNOTICE)
 
 def get_url(**kwargs):
     """Get a valid Kodi URL with encoded parameters """
@@ -44,7 +48,7 @@ def list_categories():
     xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
 
 def list_livestreams():
-    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'CGTN Livestream')
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'Livestreams')
     xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
 
     parser = ChannelParser()
@@ -55,7 +59,8 @@ def list_livestreams():
                                     'genre': "Livestream",
                                     'plot': video.title,
                                     'mediatype': 'movie'})
-        poster = os.path.join(Config.mediaDir, video['poster'])
+        poster_file = "poster_cgtn_{}.png".format(channel["prefix"])
+        poster = os.path.join(Config.mediaDir, poster_file)
         list_item.setArt({'poster': poster, 'fanart': Config.fanart})
         list_item.setProperty('IsPlayable', 'true')
 
@@ -70,7 +75,7 @@ def router(paramstring):
     params = dict(parse_qsl(paramstring))
 
     if params:
-        if params['action'] == 'listing' and params['category'] == ['livestream']:
+        if params['action'] == 'listing' and params['category'] == 'livestreams':
             list_livestreams()
     else:
         list_categories()
