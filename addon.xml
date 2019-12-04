@@ -26,8 +26,19 @@ Initial release
     <assets>
         <icon>resources/icon.png</icon>
         <fanart>resources/fanart.jpg</fanart>
-        <!-- <banner></banner> -->
-        <!-- <screenshot></screenshot> -->
+        <banner>resources/banner.png</banner>
+        <screenshot>resources/screenshot-1.png</screenshot>
+        <screenshot>resources/screenshot-2.png</screenshot>
+        <screenshot>resources/screenshot-3.png</screenshot>
+        <screenshot>resources/screenshot-4.png</screenshot>
+        <screenshot>resources/screenshot-5.png</screenshot>
+        <screenshot>resources/screenshot-6.png</screenshot>
+        <screenshot>resources/screenshot-7.png</screenshot>
+        <screenshot>resources/screenshot-8.png</screenshot>
+        <screenshot>resources/screenshot-9.png</screenshot>
+        <screenshot>resources/screenshot-10.png</screenshot>
+        <screenshot>resources/screenshot-11.png</screenshot>
+        <screenshot>resources/screenshot-12.png</screenshot>
     </assets>
     <reuselanguageinvoker>false</reuselanguageinvoker>
   </extension>
