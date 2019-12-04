@@ -25,9 +25,17 @@ class SectionFR(object):
 
     @classmethod
     def get_all(cls):
-        """Get all channels """
+        """Get all sections """
         return [cls.ALL, cls.CHINE, cls.MONDE, cls.ECONOMIE, cls.OPINIONS, cls.CULTURE,
                 cls.SPORT, cls.MONDE_2, cls.AFRIQUE, cls.MONDE_3, cls.EXCLUSIVITES, cls.VIDEOS]
+
+    @classmethod
+    def get_by_id(cls, section_id):
+        """Get section by key """
+        for section in cls.get_all():
+            if section['id'] == section_id:
+                return section
+        return None
 
 class SectionAR(object):
     """Class to represent CTGN sections for Arab region """
@@ -40,8 +48,16 @@ class SectionAR(object):
 
     @classmethod
     def get_all(cls):
-        """Get all channels """
+        """Get all sections """
         return [cls.ALL, cls.CHINA, cls.INTERNATIONAL, cls.ARABIC, cls.DIALOGUE_AND_COMMENTS]
+
+    @classmethod
+    def get_by_id(cls, section_id):
+        """Get section by key """
+        for section in cls.get_all():
+            if section['id'] == section_id:
+                return section
+        return None
 
 class SectionSP(object):
     """Class to represent CTGN sections for Spanish region """
@@ -57,9 +73,17 @@ class SectionSP(object):
 
     @classmethod
     def get_all(cls):
-        """Get all channels """
+        """Get all sections """
         return [cls.ALL, cls.CHINA, cls.MUNDO, cls.IBERO_AMERICA, cls.ECONOMIA, cls.CULTURA,
                 cls.DEPORTES, cls.OTHER]
+
+    @classmethod
+    def get_by_id(cls, section_id):
+        """Get section by key """
+        for section in cls.get_all():
+            if section['id'] == section_id:
+                return section
+        return None
 
 class SectionRU(object):
     """Class to represent CTGN sections for Russian region """
@@ -78,6 +102,14 @@ class SectionRU(object):
         """Get all channels """
         return [cls.ALL, cls.POLITICS_ECONOMICS, cls.SCIENCE_EDUCATION, cls.CULTURE_SPORT,
                 cls.SOCIETY, cls.CHINA, cls.EURASIA, cls.WORLD]
+
+    @classmethod
+    def get_by_id(cls, section_id):
+        """Get section by key """
+        for section in cls.get_all():
+            if section['id'] == section_id:
+                return section
+        return None
 
 
 class SectionParser(object):
@@ -163,15 +195,16 @@ class SectionParser(object):
     def __parse_video(json):
         """Helper function to parse json into video object """
         uid = json['id']
+        channel_id = json['channel']
         video_url = json['coverVideo']
         img_url = json['coverUrl']
         web_url = json['link']
         title = json['headline']
-        details = None
+        details = title
         if 'abstracts' in json:
             details = json['abstracts']
         editor = json['editorName']
         publish_date = json['publishDate']
 
-        return Video(uid=uid, video_url=video_url, img_url=img_url, web_url=web_url,
+        return Video(uid=uid, channel_id=channel_id, video_url=video_url, img_url=img_url, web_url=web_url,
                      title=title, details=details, editor=editor, publish_date=publish_date)

@@ -24,7 +24,7 @@ class NewsCategory(object):
 
 class NewsCategoryParser(object):
     """Class to parse news categories from CGTN EN """
-    NO_SUBCAT_LIST = ["china", "sports", "tech-sci", "world", "culture", "transcripts", "opinions", "video"]
+    NO_SUBCAT_LIST = ["china", "sports", "tech-sci", "world", "culture", "transcripts", "opinions"]
     BASE_URL = "https://www.cgtn.com"
 
     @staticmethod
@@ -42,7 +42,7 @@ class NewsCategoryParser(object):
             for item in footer.find_all("a", {"data-action": "Sitemap_Click"}):
                 if item.text.strip() in ignore_categories:
                     continue
-                cat = NewsCategory(key=item['href'].split("/")[-1],
+                cat = NewsCategory(key=item['href'].split("/")[-1].split(".")[0].split("?")[0],
                                    name=item.text.strip().capitalize(),
                                    url=item['href'])
                 if cat.key not in NewsCategoryParser.NO_SUBCAT_LIST:
@@ -69,7 +69,7 @@ class NewsCategoryParser(object):
             soup = BeautifulSoup(request.content, "html5lib")
 
             for item in soup.find_all('a', {'href': re.compile(r'/{}/'.format(category))}):
-                key = item['href'].split("/")[-1].split(".")[0]
+                key = item['href'].split("/")[-1].split(".")[0].split("?")[0]
 
                 if key in ["china", "log"] or key in subcategories_keys:
                     continue
