@@ -17,8 +17,10 @@ import xbmcplugin
 
 from resources.lib.channel import Channel, ChannelParser
 from resources.lib.other.section import SectionSP, SectionFR, SectionAR, SectionRU, SectionParser
-from resources.lib.english.newscategory import NewsCategory, NewsCategoryParser
+from resources.lib.english.newscategory import NewsCategoryParser
+from resources.lib.english.newsspecial import NewsSpecialParser
 from resources.lib.english.news import NewsParser
+from resources.lib.english.program import ProgramParser
 
 from config import Config, Categories
 
@@ -44,7 +46,7 @@ def list_categories():
         poster = os.path.join(Config.mediaDir, Categories.get_poster(cat))
         list_item.setArt({'poster': poster, 'fanart': Config.fanart})
 
-        # plugin://plugin.video.cgtn/?action=listing&category=livestream|channels|news
+        # plugin://plugin.video.cgtn/?action=listing&category=livestream|channels|news|topnews
         url = get_url(action='listing', category=cat)
         xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=True)
 
@@ -262,8 +264,7 @@ def list_newscategory_videos_en(channel_key, category_url, has_subcatagories):
                                         'genre': sub_category.name,
                                         'mediatype': 'video'})
 
-            poster_file = "poster_cgtn_{}.png".format(Channel.get_by_key(channel_key)['prefix'])
-            poster = os.path.join(Config.mediaDir, poster_file)
+            poster = os.path.join(Config.mediaDir, "poster_cgtn_news")
             list_item.setArt({'poster': poster, 'fanart': Config.fanart})
 
             # plugin://plugin.video.cgtn/?action=listing&newschannel=en&
@@ -271,7 +272,6 @@ def list_newscategory_videos_en(channel_key, category_url, has_subcatagories):
             url = get_url(action='listing', newschannel=channel_key, newscategory=sub_category.url, hassubs=False)
             xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=True)
 
-    videos = []
     parser = NewsParser()
     videos = parser.parse_videos(category_url)
 
@@ -281,6 +281,125 @@ def list_newscategory_videos_en(channel_key, category_url, has_subcatagories):
         list_item = xbmcgui.ListItem(label=video.title)
         list_item.setInfo('video', {'title': video.title,
                                     'genre': genre,
+                                    'premiered': premiered,
+                                    'plotoutline': video.title,
+                                    'plot': video.title,
+                                    'mediatype': 'movie'})
+        list_item.setArt({'poster': video.img_url, 'fanart': Config.fanart})
+        list_item.setProperty('IsPlayable', 'true')
+
+        # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
+        url = get_url(action='play', video=video.video_url)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=False)
+
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_NONE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def list_others():
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'Others')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
+
+    others = ["topnews", "programs", "specials"]
+
+    for other in others:
+        list_item = xbmcgui.ListItem(label=other.capitalize(), iconImage='DefaultFolder.png')
+        list_item.setInfo('video', {'title': other.capitalize(),
+                                    'genre': other.capitalize(),
+                                    'mediatype': 'video'})
+
+        poster = os.path.join(Config.mediaDir, "poster_cgtn_news.png")
+        list_item.setArt({'poster': poster, 'fanart': Config.fanart})
+
+        # plugin://plugin.video.cgtn/?action=listing&others=topnews|programs|specials
+        url = get_url(action='listing', others=other)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=True)
+
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def list_topnews_videos_en():
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'Top News')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
+
+    parser = ProgramParser()
+    for video in parser.parse_topnews():
+        premiered = time.strftime('%Y-%m-%d', time.localtime(int(video.publish_date)/1000))
+        list_item = xbmcgui.ListItem(label=video.title)
+        list_item.setInfo('video', {'title': video.title,
+                                    'genre': 'Top News',
+                                    'director': video.editor,
+                                    'premiered': premiered,
+                                    'plotoutline': video.title,
+                                    'plot': video.details,
+                                    'mediatype': 'movie'})
+        list_item.setArt({'poster': video.img_url, 'fanart': Config.fanart})
+        list_item.setProperty('IsPlayable', 'true')
+
+        # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
+        url = get_url(action='play', video=video.video_url)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=False)
+
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_NONE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def list_program_videos_en():
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'Top News')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
+
+    parser = ProgramParser()
+    for video in parser.parse_programs():
+        premiered = time.strftime('%Y-%m-%d', time.localtime(int(video.publish_date)/1000))
+        list_item = xbmcgui.ListItem(label=video.title)
+        list_item.setInfo('video', {'title': video.title,
+                                    'genre': 'Top News',
+                                    'director': video.editor,
+                                    'premiered': premiered,
+                                    'plotoutline': video.title,
+                                    'plot': video.details,
+                                    'mediatype': 'movie'})
+        list_item.setArt({'poster': video.img_url, 'fanart': Config.fanart})
+        list_item.setProperty('IsPlayable', 'true')
+
+        # plugin://plugin.video.cgtn/?action=play&video=httpx://example.com/dummy.m3u8
+        url = get_url(action='play', video=video.video_url)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=False)
+
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_NONE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def list_specials_en():
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'Specials')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
+
+    parser = NewsSpecialParser()
+    specials = parser.parse_specials("2019")
+    for special in specials:
+        list_item = xbmcgui.ListItem(label=special.name, iconImage='DefaultFolder.png')
+        list_item.setInfo('video', {'title': special.name,
+                                    'genre': 'Special',
+                                    'mediatype': 'video'})
+
+        list_item.setArt({'poster': special.img_url, 'fanart': Config.fanart})
+
+        # plugin://plugin.video.cgtn/?action=listing&others=topnews|programs|specials
+        url = get_url(action='listing', others="specials", specialurl=special.url)
+        xbmcplugin.addDirectoryItem(handle=PLUGIN_HANDLE, url=url, listitem=list_item, isFolder=True)
+
+    xbmcplugin.addSortMethod(PLUGIN_HANDLE, xbmcplugin.SORT_METHOD_LABEL_IGNORE_THE)
+    xbmcplugin.endOfDirectory(PLUGIN_HANDLE)
+
+def list_special_videos_en(specialurl):
+    xbmcplugin.setPluginCategory(PLUGIN_HANDLE, 'Special Videos')
+    xbmcplugin.setContent(PLUGIN_HANDLE, 'videos')
+
+    parser = NewsParser()
+    videos = parser.parse_videos(specialurl)
+
+    for video in videos:
+        premiered = time.strftime('%Y-%m-%d', time.localtime(int(video.publish_date)/1000))
+        list_item = xbmcgui.ListItem(label=video.title)
+        list_item.setInfo('video', {'title': video.title,
+                                    'genre': "Special",
                                     'premiered': premiered,
                                     'plotoutline': video.title,
                                     'plot': video.title,
@@ -311,6 +430,8 @@ def router(paramstring):
                     list_channels()
                 elif params['category'] == 'news':
                     list_news_channels()
+                elif params['category'] == 'others':
+                    list_others()
             elif 'channel' in params:
                 list_channel_videos(params['channel'])
             elif 'newschannel' in params:
@@ -324,6 +445,16 @@ def router(paramstring):
                         list_newscategory_videos_en(params['newschannel'], params['newscategory'], params['hassubs'])
                     else:
                         list_newscategories_en(params['newschannel'])
+            elif 'others' in params:
+                if params['others'] == "topnews":
+                    list_topnews_videos_en()
+                elif params['others'] == "programs":
+                    list_program_videos_en()
+                elif params['others'] == "specials":
+                    if 'specialurl' in params:
+                        list_special_videos_en(params['specialurl'])
+                    else:    
+                        list_specials_en()
         elif params['action'] == 'play':
             play_video(params['video'])
     else:

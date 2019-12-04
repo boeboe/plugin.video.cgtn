@@ -42,6 +42,10 @@ class Categories(object):
         "news": {
             "name": "News",
             "poster": "poster_cgtn_news.png"
+        },
+        "others": {
+            "name": "Others",
+            "poster": "poster_cgtn_news.png"
         }
     }""")
 
